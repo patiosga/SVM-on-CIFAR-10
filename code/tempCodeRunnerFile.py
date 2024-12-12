@@ -1,0 +1,1 @@
+scatter = plt.scatter(X_pca_filtered[:, 0], X_pca_filtered[:, 1], c=y_train_filtered.astype(int), cmap='cool', s=5)
