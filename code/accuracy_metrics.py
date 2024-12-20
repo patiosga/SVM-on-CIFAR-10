@@ -1,6 +1,6 @@
 from sklearn.metrics import classification_report
 import numpy as np
-import variables as var
+from variables import labels
 
 
 def accuracy(test_labels, predicted_labels):
@@ -10,5 +10,5 @@ def accuracy(test_labels, predicted_labels):
 
 def cls_report(test_labels, predicted_labels):
     # Αναλυτική αναφορά ταξινόμησης (precision, recall, f1-score, support) για κάθε κλάση ξεχωριστά
-    report = classification_report(test_labels, predicted_labels, zero_division=1)
+    report = classification_report(test_labels, predicted_labels, target_names=['dog', 'truck'], zero_division=1)
     return report

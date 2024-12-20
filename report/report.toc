@@ -1,0 +1,17 @@
+\babel@toc {greek}{}\relax 
+\contentsline {section}{\numberline {1}Εισαγωγή}{2}{section.1}%
+\contentsline {section}{\numberline {2}Εξαγωγή χαρακτηριστικών}{2}{section.2}%
+\contentsline {section}{\numberline {3}Διαδικασία Εκπαίδευσης}{5}{section.3}%
+\contentsline {section}{\numberline {4}Παραδείγματα Κατηγοριοποίησης}{5}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Κατηγοριοποίηση με \latintext PCA \greektext }{6}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Κατηγοριοποίηση με \latintext UMAP \greektext }{6}{subsection.4.2}%
+\contentsline {section}{\numberline {5}Κατηγοριοποίηση με \latintext SVM \greektext }{7}{section.5}%
+\contentsline {subsection}{\numberline {5.1}\latintext Linear \greektext και \latintext Polynomial kernel \greektext }{7}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}\latintext RBF kernel \greektext }{11}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Αποτελέσματα και Συγκρίσεις}{14}{section.6}%
+\contentsline {subsection}{\numberline {6.1}Αποτελέσματα με \latintext SVM \greektext }{14}{subsection.6.1}%
+\contentsline {subsection}{\numberline {6.2}Αποτελέσματα με \latintext KNN \greektext και \latintext Nearest Class Centroid \greektext }{15}{subsection.6.2}%
+\contentsline {subsection}{\numberline {6.3}Αποτελέσματα με Νευρωνικό Δίκτυο \latintext MLP \greektext ενός κρυφού επιπέδου}{15}{subsection.6.3}%
+\contentsline {subsection}{\numberline {6.4}Υπολογιστικός Φόρτος}{16}{subsection.6.4}%
+\contentsline {section}{\numberline {7}Συμπεράσματα}{17}{section.7}%
+\contentsline {section}{\numberline {8}Κώδικας}{17}{section.8}%

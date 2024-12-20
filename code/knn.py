@@ -14,8 +14,9 @@ def knn_experiment(training_data, training_labels, test_data, test_labels, neigh
     predicted_labels = knn.predict(test_data)
     # Calculate accuracy
     class_report = cls_report(test_labels, predicted_labels)
-
-    return class_report
+    accuracy = knn.score(test_data, test_labels)
+    
+    return class_report, accuracy
 
 
 def run_knn(training_data, training_labels, test_data, test_labels, neighbors):
@@ -23,15 +24,15 @@ def run_knn(training_data, training_labels, test_data, test_labels, neighbors):
     print(f'Number of neighbors = {neighbors}')
     print('----------------------')
 
-    class_report = knn_experiment(training_data, training_labels, test_data, test_labels, neighbors)
+    class_report, _ = knn_experiment(training_data, training_labels, test_data, test_labels, neighbors)
     
     print(class_report)
     
 
 
 def main():
-    training_data, training_labels = read_data()
-    test_data, test_labels = read_test_data()
+    training_data, training_labels = read_data(mask=True)  # μόνο σκύλοι και φορτηγά
+    test_data, test_labels = read_test_data(mask=True)
 
     # Run k-NN classification
     # Time the k-NN classification

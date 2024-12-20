@@ -13,15 +13,18 @@ class MyScaler():
         self.pca = PCA(n_components=pca_comp)  # 95% of the variance is preserved
 
         # UMAP -- τα components βγήκαν από το umap_pca_experiment.py
-        self.umap = umap.UMAP(n_components=10, n_neighbors=10, min_dist=0.1, metric='euclidean')
+        self.umap = umap.UMAP(n_components=50, n_neighbors=15, min_dist=0.1, metric='euclidean')
 
         if data is not None:
             # Fit the normalizer on the data
             self.normalizer.fit(data)
+
+            # Normalize the data before applying dimensionality reduction - ALWAYS NORMALIZE 
+            data = self.normalizer.transform(data)
+
             # Fit the PCA on the data
             self.pca.fit(data)
             # κρατάω τους scalers που έχει εφαρμοστεί στα training δεδομένα για να τον εφαρμόσω και στα test data
-            # ΕΞΑΙΡΕΣΗ --> umap???????
             # Fit the UMAP on the data
             self.umap.fit(data)
 
@@ -59,16 +62,16 @@ class MyScaler():
 def main():
     data, _ = read_data()
     print(data.shape)  # (50000, 3072)
-    scaler: MyScaler = MyScaler.load_scaler('scaler.pkl')
-    # scaler = MyScaler(data=data)
-    # scaler.save_scaler('scaler.pkl')
+    # scaler: MyScaler = MyScaler.load_scaler('scaler.pkl')
+    scaler = MyScaler(data=data)
+    scaler.save_scaler('scaler.pkl')
 
-    data_normalized = scaler.normalize_data(data)
-    print(data_normalized.shape)
-    data_pca = scaler.pca_decomposition(data_normalized)
-    print(data_pca.shape)
-    data_umap = scaler.umap_decomposition(data_normalized)
-    print(data_umap.shape)
+    # data_normalized = scaler.normalize_data(data)
+    # print(data_normalized.shape)
+    # data_pca = scaler.pca_decomposition(data_normalized)
+    # print(data_pca.shape)
+    # data_umap = scaler.umap_decomposition(data_normalized)
+    # print(data_umap.shape)
 
 
 if __name__ == '__main__':

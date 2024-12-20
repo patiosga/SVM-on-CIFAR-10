@@ -1,0 +1,342 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[english,greek]{babel}
+\newcommand{\lt}{\latintext}
+\newcommand{\gt}{\greektext}
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{geometry}
+\usepackage{booktabs}
+\geometry{margin=1in}
+\graphicspath{ {./images/} }
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1in}
+    {\Large \textbf{Έκθεση Αποτελεσμάτων}\\[0.5em]
+    Κατηγοριοποίηση Εικόνων \lt CIFAR10 \gt με \lt SVM \gt  \\[1em]}
+    %\vfill
+    {\large Ονοματεπώνυμο: Γεώργιος Πατιώς}\\
+    {\large ΑΕΜ: 4186}
+    \vspace*{1in}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Εισαγωγή}
+\begin{itemize}
+    \item  Στόχος της παρούσας εργασίας είναι η ανάπτυξη \lt Support Vector Machine(s) \gt για την κατηγοριοποίηση των εικόνων του \lt \href{https://www.cs.toronto.edu/~kriz/cifar.html}{CIFAR-10} \gt.
+    Θα γίνει σύγκριση των ποσοστών επιτυχίας του \lt SVM \gt με διαφορετικές τιμές υπερπαραμέτρων, αλλά και με άλλες μεθόδους κατηγοριοποίησης.
+
+    \item Tα αποτελέσματα των προβλημάτων υπολογίστηκαν 
+    προγραμματιστικά στη γλώσσα προγραμματισμού \lt Python \gt και μπορούν να παραχθούν απο τα 
+    επισυναπτόμενα αρχεία πηγαίου κώδικα.
+
+    \item  Το \lt CIFAR10 \gt περιέχει 60.000 έγχρωμες εικόνες \lt 32x32 pixels \gt σε 10 κατηγορίες (50.000 στο \lt training set \gt και 10.000 στο \lt test set \gt).
+    Κάθε κατηγορία περιέχει 6,000 εικόνες με τις κατηγορίες να περιλαμβάνουν αντικείμενα όπως αεροπλάνα, αυτοκίνητα, πουλιά, γάτες, ελάφια, σκύλους, βατράχους, άλογα, πλοία και φορτηγά.
+    Στο πλαίσιο της συγκεκριμένης εργασίας ο υπολογιστικός φόρτος επεξεργασίας ολόκληρου του συνόλου δεδομένων αποδείχτηκε μη διαχειρίσιμος και 
+    τα αποτελέσματα που αναλύονται επικεντρώνονται στον διαχωρισμό δύο κλάσεων: σκύλοι, φορτηγά.
+
+    \item Χρησιμοποιήθηκαν διάφοροι \lt kernels \gt για των διαχωρισμό των διαφορετικών κλάσεων. Πιο συγκεκριμένα, συγκρίθηκε η απόδοση των 
+    \lt linear, polynomial, rbf kernels \gt .
+    Για σύγκριση χρησιμοποιήθηκαν οι μέθοδοι \lt Nearest Neighbor \gt και \lt Nearest Class Centroid. \gt
+    Η μέθοδος \lt Nearest Neighbor \gt βασίζεται στην εύρεση της πιο κοντινής εικόνας στο σύνολο εκπαίδευσης με τον έλεγχο να γίνεται για 1 και 3 γείτονες.
+    Επίσης, η μέθοδος \lt Nearest Class Centroid \gt χρησιμοποιεί τον μέσο όρο των χαρακτηριστικών κάθε κλάσης για την κατηγοριοποίηση.
+
+\end{itemize}
+
+
+\section{Εξαγωγή χαρακτηριστικών}
+Αρχικά, έγινε προσπάθεια εξαγωγής χαρακτηριστικών από τις εικόνες του \lt CIFAR10 \gt με \lt Principal Component Analysis (PCA) \gt.
+Η μέθοδος αυτή μειώνει τη διάσταση των δεδομένων διατηρώντας όσο το δυνατόν περισσότερη πληροφορία. 
+Συγκεκριμένα, χρησιμοποιήθηκαν οι πρώτες 225 κύριες συνιστώσες για την αναπαράσταση των εικόνων, που διατηρούν λίγο παραπάνω από το 95\% της διακύμανσης
+των δεδομένων. Παρακάτω φαίνεται η οπτικοποίηση των πρώτων 2 κύριων συνιστωσών:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{pca.png}
+    \caption{Οπτικοποίηση των πρώτων 2 κύριων συνιστωσών των δεδομένων \lt CIFAR-10 \gt}
+    \label{fig:pca}
+\end{figure}
+
+Επιπλέον, δοκιμάστηκε η εξαγωγή χαρακτηριστικών με \lt UMAP \gt. 
+Η μέθοδος αυτή αναλύει τις εικόνες σε χαμηλότερη διάσταση, διατηρώντας την τοπολογία των δεδομένων βάσει των αποστάσεων μεταξύ των 
+σημείων στο αρχικό χώρο. Χρησιμοποιήθηκαν 50 συνιστώσες για την αναπαράσταση των εικόνων, οι οποίες διατηρούν την τοπολογία των δεδομένων 
+ικανοποιητικά. Παρακάτω φαίνεται η οπτικοποίηση σε 2 διαστάσεις:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{umap.png}
+    \caption{Οπτικοποίηση των δεδομένων \lt CIFAR-10 \gt με χρήση \lt UMAP \gt}
+    \label{fig:umap}
+\end{figure}
+
+Η παραπάνω οπτικοποίηση ενθάρρυνε περισσότερη έρευνα ως προς την αποτελεσματικότητα της μεθόδου \lt UMAP \gt στον διαχωρισμό των κλάσεων.
+Για την αντικειμενική αξιολόγηση της μεθόδου, θα πρέπει να γίνει σύγκριση των αποτελεσμάτων της με την μέθοδο \lt PCA \gt. Ως μέτρο 
+σύγκρισης χρησιμοποιήθηκε το \lt shilouette score \gt, το οποίο μετρά την ομοιότητα των σημείων μέσα σε μια κλάση και την απόσταση των 
+κλάσεων μεταξύ τους. Το \lt shilouette score \gt παίρνει τιμές από -1 έως 1, με τιμές κοντά στο 1 να υποδηλώνουν καλή ομοιότητα των σημείων
+μέσα σε μια κλάση και μεγάλη απόσταση μεταξύ των κλάσεων. Από τα πειράματα που πραγματοποιήθηκαν, παρατηρήθηκε ότι το \lt shilouette score \gt της μεθόδου \lt UMAP \gt
+είναι υψηλότερο από αυτό της μεθόδου \lt PCA \gt (Σχήμα \ref{fig:versus}), πράγμα που υποδηλώνει ότι η μέθοδος \lt UMAP \gt μπορεί να είναι αποτελεσματικότερη 
+στην εξαγωγή χαρακτηριστικών από τις εικόνες του \lt CIFAR10 \gt. 
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{pca_vs_umap.png}
+    \caption{Σύγκριση των μεθόδων \lt PCA \gt και \lt UMAP \gt με βάση το \lt shilouette score \gt}
+    \label{fig:versus}
+\end{figure}
+
+Η πραγματική αποτελεσματικότητα των μεθόδων εξαγωγής χαρακτηριστικών κρίνεται παρακάτω με τη χρήση \lt SVM \gt για 
+την κατηγοριοποίηση των εικόνων του \lt CIFAR10 \gt.
+
+Σημειώνεται ότι η \lt UMAP \gt χρησιμοποιήθηκε για τη μείωση σε 50 διαστάσεις καθώς εκεί παρατηρήθηκε ικανοποιητικό \lt shilouette score \gt (Σχήμα \ref{fig:umap_comp}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{umap_components.png}
+    \caption{\lt Shilouette score \gt για διαφορετικές τιμές συνιστωσών στη μέθοδο \lt UMAP \gt}
+    \label{fig:umap_comp}
+\end{figure}
+
+
+\section{Διαδικασία Εκπαίδευσης}
+Αρχικά, τα δεδομένα κανονικοποιούνται όταν ακόμα είναι στη μορφή \lt flat \gt διανύσματος με 3072 διαστάσεις. 
+Το βασικό \lt training loop \gt έπειτα αποτελείται από τα εξής βήματα:
+\begin{itemize}
+    \item Εκπαίδευση του μοντέλου με το \lt training set \gt και τον υπολογισμό της ακρίβειας του στο \lt validation set \gt.
+    \item Επιλογή του μοντέλου με την καλύτερη ακρίβεια στο \lt validation set \gt.
+    \item Εκπαίδευση του επιλεγμένου μοντέλου με όλο το \lt training set \gt.
+    \item Υπολογισμός της ακρίβειας του μοντέλου στο \lt test set \gt.
+\end{itemize}
+
+
+
+
+\section{Παραδείγματα Κατηγοριοποίησης}
+Παρακάτω απεικοντίζονται μερικά παραδείγματα εικόνων με σωστή και λανθασμένη πρόβλεψη.  
+Παρουσιάζονται παραδείγματα από την εκπαίδευση \lt SVM \gt με τα δεδομένα \lt PCA \gt και \lt UMAP \gt.
+Οι εικόνες επιλέγονται τυχαία στο αρχείο 
+\lt \textbf{find\_classification\_examples.py} \gt
+από τις σωστές και λάθος προβλέψεις των μοντέλων που εμφάνισαν τη μεγαλύτερη ακρίβεια στο \lt validation set \gt
+. Η τυχαία επιλογή ωστόσο επιστρέφει σταθερά 
+τα ίδια αποτελέσματα, καθώς χρησιμοποιείται το ίδιο \lt random state \gt . Ακόμη, η κάθε εικόνα
+έχει μια ετικέτα στο πάνω μέρος με τη μορφή \lt Wrong/true Pred : [class], True : [class]\gt.
+\subsection{Κατηγοριοποίηση με \lt PCA \gt}
+\begin{center}
+\begin{figure}[H]
+    \includegraphics[width=1\textwidth]{exmaples_pca_rbf.png}
+    \caption{Παραδείγματα κατηγοριοποίησης στα δεδομένα που προέκυψαν από τη μέθοδο \lt PCA \gt με \lt rbf kernel \gt.}
+    \label{fig:pca_examples}
+\end{figure}
+\end{center}
+
+\subsection{Κατηγοριοποίηση με \lt UMAP \gt}
+
+\begin{figure}[H]
+    \centering
+   \includegraphics[width=1\textwidth]{examples_umap_poly.png}
+    \caption{Παραδείγματα κατηγοριοποίησης στα δεδομένα που προέκυψαν από τη μέθοδο \lt UMAP \gt με \lt polynomial kernel \gt.}
+    \label{fig:umap_examples}
+\end{figure}
+
+
+\section{Κατηγοριοποίηση με \lt SVM \gt}
+
+Για την κατηγοριοποίηση των εικόνων του \lt CIFAR10 \gt (κλάσεις σκύλων και φορτηγών) χρησιμοποιήθηκε η μέθοδος \lt Support Vector Machine \gt.
+Αρχικά, δοκιμάστηκε η μέθοδος με \lt polynomial kernel \gt στα δεδομένα στα οποία είχε εφαρμοστεί \lt PCA \gt. 
+
+ 
+\subsection{\lt Linear \gt και \lt Polynomial kernel \gt}
+Παρακάτω φαίνεται η ακρίβεια των μοντέλων στο \lt validation set \gt για διάφορες τιμές 
+του βαθμού του πολυωνυμικού πυρήνα:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{poly svm.png}
+    \caption{Ακρίβεια των μοντέλων \lt SVM \gt με \lt polynomial kernel \gt στα \lt training, validation set \gt για διάφορες τιμές του βαθμού του πολυωνυμικού πυρήνα.}
+    \label{fig:poly_svm}
+\end{figure}
+Επίσης, ο μέσος αριθμός των \lt support vectors \gt ανά κλάση και ο χρόνος εκπαίδευσης για τα μοντέλα με διάφορες τιμές του βαθμού του πολυωνυμικού πυρήνα φαίνεται παρακάτω:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{supp vectos num poly.png}
+    \caption{Πλήθος \lt support vectors \gt των μοντέλων \lt SVM \gt με \lt polynomial kernel \gt για διάφορες τιμές του βαθμού του πολυωνυμικού πυρήνα.}
+    \label{fig:poly_svm supp vectors}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{poly_time.png}
+    \caption{Χρόνος εκπαίδευσης των μοντέλων \lt SVM \gt με \lt polynomial kernel \gt για διάφορες τιμές του βαθμού του πολυωνυμικού πυρήνα.}
+    \label{fig:poly_svm time}
+\end{figure}
+Συμπερασματικά, παρατηρείται σταθερή ακρίβεια για γραμμικό πυρήνα μέχρι και πολυωνυμικό βαθμού 5. Τελικά, επιλέχθηκε ως καλύτερος αυτός με βαθμό 3 καθώς συνδυάζει καλή 
+ακρίβεια και χρόνο εκπαίδευσης χωρίς να αυξάνεται πολύ η ακρίβεια στο \lt training set \gt και ο αριθμός των \lt support vectors \gt κρατώντας το μοντέλο πιο γενικό.
+Στο μοντέλο αυτό ερευνήθηκε η επίδραση της παραμέτρου $C$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{poly c supp vectors.png}
+    \caption{Πλήθος \lt support vectors \gt του μοντέλου \lt SVM \gt με \lt polynomial kernel (d=3) \gt για διάφορες τιμές της παραμέτρου $C$.}
+    \label{fig:poly c supp}
+\end{figure}
+
+Η μείωση του πλήθους των \lt support vectors \gt καθώς αυξάνεται η τιμή του $C$ μπορεί να εξηγηθεί απο το γεγονός ότι με χαμηλότερη τιμή του $C$ επιτρέπονται
+περισσότερα λάθη στο \lt training set \gt, με αποτέλεσμα να αυξάνεται το πλήθος των \lt support vectors \gt. Αντίστοιχα, με υψηλότερη τιμή του $C$ τιμωρούνται
+περισσότερο τα λάθη στο \lt training set \gt και πιέζεται το μοντέλο να περάσει όσο περισσότερα σημεία γίνεται από τη σωστή πλευρά της διαχωριστικής επιφάνειας, 
+με αποτέλεσμα να μειώνεται το πλήθος των \lt support vectors \gt. Ακόμη, συναρτήσει της ακρίβειας του μοντέλου στο \lt validation set \gt που φαίνεται παρακάτω, επιλέχθηκε η τιμή $C=1$.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{poly c param.png}
+    \caption{Πλήθος \lt support vectors \gt του μοντέλου \lt SVM \gt με \lt polynomial kernel (d=3) \gt για διάφορες τιμές της παραμέτρου $C$.}
+    \label{fig:poly c param}
+\end{figure}
+
+
+
+\subsection{\lt RBF kernel \gt}
+
+Δοκιμάστηκε, ακόμη, η μέθοδος με \lt rbf kernel \gt, χρησιμοποιώντας \lt 3-fold cross-validation \gt για την εύρεση των βέλτιστων υπερπαραμέτρων. Ακόμη, με αφορμή 
+την κλίση του \lt \href{https://www.csie.ntu.edu.tw/~cjlin/papers/guide/guide.pdf}{A Practical Guide to Support Vector Classification} \gt προς \lt RBF kernels \gt έγινε και χρήση \lt grid search \gt 
+για την εύρεση των βέλτιστων υπερπαραμέτρων. Τα αποτελέσματα φαίνονται παρακάτω:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{rbf_heatmap.png}
+    \caption{Ακρίβεια των μοντέλων \lt SVM \gt με \lt RBF kernel \gt στο \lt validation set \gt για διάφορες τιμές του των παραμέτρων $C$ και $\gamma$.}
+    \label{fig:rbf_heatmap}
+\end{figure}
+
+Η μεγαλύτερη ακρίβεια παρατηρήθηκε για $C=10$ και $\gamma=0.001$. Στη συνέχεια, εξετάστηκε η επίδραση των παραμέτρων $C$ και $\gamma$ στον αριθμό των \lt support vectors \gt :
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{rbf supp vectors.png}
+    \caption{Πλήθος \lt support vectors \gt (σε χιλιάδες) των μοντέλων \lt SVM \gt με \lt RBF kernel \gt για διάφορες τιμές των παραμέτρων $C$ και $\gamma$.}
+    \label{fig:rbf supp vectors}
+\end{figure}
+
+Για μικρές τιμές της παραμέτρου $C$ παρατηρείται και πάλι αύξηση του πλήθους των \lt support vectors \gt, 
+ενώ για μεγαλύτερες τιμές της $C$ το πλήθος των \lt support vectors \gt μειώνεται για τον λόγο που αποδόθηκε και παραπάνω. Ακόμη, παρατηρείται ότι για διαφορετικές τιμές της παραμέτρου $\gamma$
+το πλήθος των \lt support vectors \gt παραμένει σταθερό. Αυτό ίσως να αποδίδεται στο γεγονός ότι η επίδραση της παραμέτρου $C$ είναι πιο σημαντική στον αριθμό των \lt support vectors \gt σε σχέση με την παράμετρο $\gamma$.
+
+Τελικά, ως βέλτιστο ζεύγος υπερπαραμέτρων επιλέχθηκε το $C=10$ και $\gamma=0.001$.
+
+
+
+
+
+\section{Αποτελέσματα και Συγκρίσεις}
+\subsection{Αποτελέσματα με \lt SVM \gt}
+
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{main_svm.png}
+    \caption{Ακρίβεια των μοντέλων \lt SVM \gt με \lt linear, polynomial \gt και \lt RBF kernels \gt στο \lt test set \gt για διαφορετικές εκδοχές των δεδομένων.}
+    \label{fig:main svm}
+\end{figure}
+
+\subsection{Αποτελέσματα με \lt KNN \gt και \lt Nearest Class Centroid \gt}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{baseline_methods.png}
+    \caption{Ακρίβεια των μοντέλων \lt KNN \gt και \lt Nearest Class Centroid \gt στο \lt test set \gt για διαφορετικές εκδοχές των δεδομένων.}
+    \label{fig:knn}\
+\end{figure}
+
+\subsection{Αποτελέσματα με Νευρωνικό Δίκτυο \lt MLP \gt ενός κρυφού επιπέδου}
+
+Το νευρωνικό δίκτυο \lt MLP \gt εκπαιδεύτηκε με 13 εποχές και αποτελείται απο 1 κρυφό επίπεδο \lt MLP \gt με 64 νευρώνες, ενώ χρησιμοποιήθηκε Hinge loss για τη βελτιστοποίηση. Τα αποτελέσματα φαίνονται παρακάτω:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{mlp_all.png}
+    \caption{Ακρίβεια του μοντέλου \lt MLP \gt στο \lt test set \gt για διαφορετικές εκδοχές των δεδομένων.}
+    \label{fig:mlp}
+\end{figure}
+
+\subsection{Υπολογιστικός Φόρτος}
+
+Στον παρακάτω πίνακα φαίνονται  ο χρόνος εκτέλεσης
+ανά μέθοδο κατηγοριοποίησης και εξαγωγής χαρακτηριστικών.  
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{l|ccc}
+    \toprule
+    Μέθοδος & \multicolumn{3}{c}{Χρόνος εκτέλεσης (\lt sec \gt)} \\ 
+    \cmidrule(lr){2-4}
+            & \lt Original \gt & \lt PCA \gt & \lt UMAP \gt \\ 
+    \midrule 
+    \lt SVM (linear) \gt          & 22.5        & 1.6        & 0.7 \\
+    \lt SVM (poly d=3) \gt        & 32.8       & 2.6       & 1.5 \\ 
+    \lt SVM (RBF $C=10, \gamma=0.001$) \gt             & 41.1       & 3.3       & 1.0 \\
+    \lt KNN (n=1) \gt             & 2.17        & 0.2       & 0.1 \\
+    \lt KNN (n=3) \gt             & 1.9        & 0.2       & 0.1 \\
+    \lt Nearest Class Centroid \gt & 0.18        &  0.03      & 0.01 \\
+    \lt MLP (1 hidden layer - 13 epochs \gt)  & 6.8        & 2.2       & 2.2 \\ \gt
+    \bottomrule
+    \end{tabular}
+    \caption{Σύγκριση χρόνων εκτέλεσης μεταξύ μεθόδων.}
+    \label{tab:comparison}
+\end{table}
+
+
+\section{Συμπεράσματα}
+
+Το πρόβλημα κατηγοριοποίησης 2 μόνο κλάσεων είναι σχετικά απλό και κατάφεραν όλες οι μέθοδοι να πετύχουν ακρίβεια πάνω από 70\%. Ωστόσο, οι μικροί χρόνοι εκτέλεσης επέτρεψαν την εκτέλεση περισσότερων πειραμάτων.
+Από τα παραπάνω αποτελέσματα, καταρχάς παρατηρείται ότι η μέθοδος \lt UMAP \gt δεν είναι αποτελεσματικότερη από τη μέθοδο \lt PCA \gt στην εξαγωγή χαρακτηριστικών από τις εικόνες του \lt CIFAR10 \gt παρά
+τις αρχικές προσδοκίες. Είχε καλύτερους χρόνους εκτέλεσης στις περισσότερες μεθόδους κατηγοριοποίησης μειώνοντας όμως την ακρίβεια των κατηγοριοποιητών. 
+
+Στη συνέχεια, παρατηρήθηκε ότι όταν δεν χρησιμοποιηείται \lt UMAP \gt η μέθοδος \lt SVM \gt με \lt RBF kernel \gt είναι η πιο αποτελεσματική μέθοδος κατηγοριοποίησης, ακολουθούμενη από τη μέθοδο \lt SVM \gt με \lt polynomial kernel \gt 3ου βαθμού. 
+Αντίθετα, με \lt UMAP \gt μεγαλύτερη ακρίβεια παρατηρήθηκε με πολυωνυμικούς πυρήνες όσο αυξάνεται ο βαθμός.
+
+Οι κλασικοί κατηγοριοποιητές \lt KNN, Nearest Centroid \gt παρουσίασαν σταθερά χαμηλότερη ακρίβεια από τα \lt SVM \gt οποιουδήποτε πυρήνα όταν φυσικά χρησιμοποιούνται κατάλληλες υπερπαράμετροι.
+
+Τέλος, το μοντέλο \lt MLP \gt με ένα κρυφό επίπεδο παρουσίασε ακρίβεια παρόμοια με τα \lt SVM \gt με \lt RBF kernel \gt και \lt polynomial kernel \gt. 
+Αυτό, καταδεικνύει ότι η χρήση νευρωνικών δικτύων μπορεί να είναι εξίσου αποτελεσματική με τις παραδοσιακές μεθόδους κατηγοριοποίησης όπως τα \lt SVM \gt, ακόμα και όταν χρησιμοποιείται τόσο μικρό και απλό δίκτυο.
+
+
+
+\section{Κώδικας}
+
+Για την εκτέλεση του κώδικα που υλοποιήθηκε στην παρούσα εργασία απαιτείται 
+η χρήση των παρακάτω βιβλιοθηκών που δεν συμπεριλαμβάνονται στην εγκατάσταση της \lt Python \gt από προεπιλογή:
+\begin{itemize}
+\item \lt \textbf{numpy} \gt για αριθμητικές πράξεις -- \lt \href{https://www.sympy.org/}{https://www.sympy.org} \gt
+\item \lt \textbf{scikit-learn} \gt για τη χρήση έτοιμων υλοποιημένων κατηγοριοποιητών -- \\ \lt \href{https://scikit-learn.org/stable/}{https://scikit-learn.org/stable/} \gt
+\item \lt \textbf{umap-learn} \gt για την εξαγωγή χαρακτηριστικών με \lt UMAP \gt -- \lt \href{https://umap-learn.readthedocs.io/en/latest/}{https://umap-learn.readthedocs.io/en/latest/} \gt
+\end{itemize}
+
+Για την παραγωγή των αποτελεσμάτων που σχολιάστηκαν στην εργασία αυτή, απαιτείται η εκτέλεση των αρχείων κώδικα που παρατίθονται παρακάτω:
+\begin{itemize}
+    \item \lt \textbf{variables.py} \gt : Αρχείο με χρήσιμες μεταβλητές
+    \item \lt \textbf{knn.py} \gt : Υλοποίηση του αλγορίθμου \lt Nearest Neighbor \gt με 1 και 3 γείτονες και εμφάνιση αποτελεσμάτων.
+    \item \lt \textbf{nearest\_centroid.py} \gt : Υλοποίηση του αλγορίθμου \lt Nearest Class Centroid \gt και εμφάνιση αποτελεσμάτων.
+    \item \lt \textbf{main\_baseline\_methods.py} \gt : Συγκεντρωτική εκτέλεση όλων των πειραμάτων που αφορούν τους κλασικούς κατηγοριοποιητές.
+    \item \lt \textbf{mlp.py} \gt : Εκπαίδευση του μοντέλου \lt MLP \gt με ένα κρυφό επίπεδο και εμφάνιση αποτελεσμάτων.
+    \item \lt \textbf{read\_data.py} \gt : Φόρτωση των δεδομένων του \lt CIFAR10 \gt από τον δίσκο. Σημειώνεται ότι τα δεδομένα απο την ιστοσελίδα του \lt \href{https://www.cs.toronto.edu/~kriz/cifar.html}{CIFAR-10} \gt 
+    αποθηκεύτηκαν στον φάκελο \lt \textbf{cifar-10-batches-py} \gt και ύστερα τοποθετήθηκαν
+    σε φάκελο με όνομα \lt \textbf{data} \gt. Διαφορετική ιεραρχία φακέλων απαιτεί την αλλαγή των αντίστοιχων μεταβλητών στον κώδικα του αρχείου \lt read\_data.py \gt.
+    \item \lt \textbf{umap\_pca\_experiment.py} \gt : Εξαγωγή χαρακτηριστικών με \lt PCA \gt και \lt UMAP \gt και παρουσίαση των αποτελεσμάτων.
+    \item \lt \textbf{find\_classification\_examples.py} \gt : Εύρεση και εμφάνιση παραδειγμάτων εικόνων ταξινόμησης που έχουν ταξινομηθεί σωστά ή λανθασμένα από το μοντέλο που έχει αποθηκευτεί στον δίσκο. 
+    \item \lt \textbf{accuracy\_metrics.py} \gt : Μέθοδοι για τον υπολογισμό των μετρικών ακρίβειας, ανάκλησης και \lt F1-score \gt.
+    \item \lt \textbf{scaler.py} \gt : Εξαγωγή χαρακτηριστικών με \lt PCA \gt και \lt UMAP \gt και αποθήκευση των αποτελεσμάτων στο αρχείο \lt \textbf{scaler.pkl} \gt. Για να χρησιμοποιηθεί ο 
+    \lt scaler \gt σε οποιοδήποτε άλλο αρχείο κώδικα, απαιτείται πρώτα η εκτέλεση του συγκεκριμένου αρχείου για να παραχθεί το αρχείο \lt \textbf{scaler.pkl} \gt.
+    \item \lt \textbf{svm\_model\_explorations.ipynb} \gt : Εξερεύνηση των διαφορετικών \lt kernels \gt του \lt SVM \gt και εύρεση των βέλτιστων υπερπαραμέτρων. 
+    Παραγωγή γραφημάτων για την αξιολόγηση των αποτελεσμάτων.
+    \item \lt \textbf{svm\_main\_models.py} \gt : Εκπαίδευση των τελικών μοντέλων \lt SVM \gt και παρουσίαση των αποτελεσμάτων τους.
+\end{itemize}
+
+\end{document}

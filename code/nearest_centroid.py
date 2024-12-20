@@ -13,8 +13,8 @@ def nearest_centroid_experiment(training_data, training_labels, test_data, test_
     predicted_labels = nearest_centroid.predict(test_data)
     # Calculate accuracy
     class_report = cls_report(test_labels, predicted_labels)
-
-    return class_report
+    accuracy = nearest_centroid.score(test_data, test_labels)
+    return class_report, accuracy
 
 
 
@@ -22,10 +22,12 @@ def main():
     training_data, training_labels = read_data()
     test_data, test_labels = read_test_data()
     start = time.time()
-    class_report = nearest_centroid_experiment(training_data, training_labels, test_data, test_labels)
+    class_report, _ = nearest_centroid_experiment(training_data, training_labels, test_data, test_labels)
     
     print(class_report)
     print("Time taken: ", time.time()-start)
+    
+    
  
     
 

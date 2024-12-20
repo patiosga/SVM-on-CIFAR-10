@@ -4,6 +4,7 @@ from read_data import read_data
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import silhouette_score
+from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from variables import labels
 
@@ -39,10 +40,14 @@ def umap_vs_pca(plot=True, plot_silhouette=True):
     class_pairs = [(1, 5), (2, 6), (4, 8), (5, 9), (7, 8), (1, 9)]
 
     # Load the CIFAR-10 dataset
-    X, y = read_data()
+    X, y = read_data(mask=False)
     # split into training and testing sets
-    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.8, random_state=42, stratify=y)
+    X_train, _, y_train, _ = train_test_split(X, y, test_size=0.6, random_state=42, stratify=y)
+
     # Normalize the data
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+
     if plot:  # Plot the 2D projections
         # Reduce the dimensionality of the dataset to 2 dimensions using PCA
         pca = PCA(n_components=2)
@@ -50,7 +55,7 @@ def umap_vs_pca(plot=True, plot_silhouette=True):
         plot_2D(X_pca, y_train, class_pairs, custom_cmap, method='PCA')
 
         # Reduce the dimensionality of the dataset to 2 dimensions using UMAP
-        reducer = umap.UMAP(n_components=2, n_neighbors=10, min_dist=0.1, metric='euclidean')
+        reducer = umap.UMAP(n_components=2, n_neighbors=15, min_dist=0.1, metric='euclidean')
         X_embedded = reducer.fit_transform(X_train)
         plot_2D(X_embedded, y_train, class_pairs, custom_cmap, method='UMAP')
 
@@ -60,7 +65,7 @@ def umap_vs_pca(plot=True, plot_silhouette=True):
         X_pca = pca.fit_transform(X_train)
 
         # Reduce the dimensionality of the dataset to 10 dimensions using UMAP
-        reducer = umap.UMAP(n_components=10, n_neighbors=10, min_dist=0.1, metric='')
+        reducer = umap.UMAP(n_components=100, n_neighbors=15, min_dist=0.1, metric='euclidean')
         X_embedded = reducer.fit_transform(X_train)
 
         # Calculate the silhouette score for the UMAP projection and the PCA projection
@@ -73,7 +78,7 @@ def umap_vs_pca(plot=True, plot_silhouette=True):
         # Plot the bars for each method
         plt.bar(x - width, [silhouette_score(X_train[(y_train == pair[0]) | (y_train == pair[1])], y_train[(y_train == pair[0]) | (y_train == pair[1])]) for pair in class_pairs], width, label='Original(3072)')
         plt.bar(x, [silhouette_score(X_pca[(y_train == pair[0]) | (y_train == pair[1])], y_train[(y_train == pair[0]) | (y_train == pair[1])]) for pair in class_pairs], width, label='PCA(100)')
-        plt.bar(x + width, [silhouette_score(X_embedded[(y_train == pair[0]) | (y_train == pair[1])], y_train[(y_train == pair[0]) | (y_train == pair[1])]) for pair in class_pairs], width, label='UMAP(10)')
+        plt.bar(x + width, [silhouette_score(X_embedded[(y_train == pair[0]) | (y_train == pair[1])], y_train[(y_train == pair[0]) | (y_train == pair[1])]) for pair in class_pairs], width, label='UMAP(100)')
 
         # Add labels and title
         plt.xlabel('Class pairs')
@@ -90,7 +95,6 @@ def umap_components_experiment():
     # Load the CIFAR-10 dataset
     X, y = read_data()
     # split into training and testing sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8, random_state=42, stratify=y)
 
     # Define the number of components to test
     n_components = [2, 5, 10, 20, 50, 100, 200]
@@ -99,9 +103,9 @@ def umap_components_experiment():
     silhouette_scores = []
     for n in n_components:
         print(f'Calculating silhouette score for {n} components...')
-        reducer = umap.UMAP(n_components=n, n_neighbors=10, min_dist=0.1, metric='euclidean')
-        X_embedded = reducer.fit_transform(X_train)
-        silhouette_score_n = silhouette_score(X_embedded, y_train)
+        reducer = umap.UMAP(n_components=n, n_neighbors=15, min_dist=0.1, metric='euclidean')
+        X_embedded = reducer.fit_transform(X)
+        silhouette_score_n = silhouette_score(X_embedded, y)
         silhouette_scores.append(silhouette_score_n)
 
     # Plot the silhouette scores
